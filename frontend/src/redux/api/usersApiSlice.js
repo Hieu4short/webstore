@@ -12,9 +12,14 @@ export const userApiSlice = apiSlice.injectEndpoints({
             // Invalidates the 'User' tag on successful login
             invalidatesTags: ['User'],
         }),
-        // You can add more endpoints here
+        logout: builder.mutation({
+            query: () => ({
+                url: `${USERS_URL}/logout`,
+                method: 'POST',
+            }),
+        }),
     }),
 });
 
 
-export const { useLoginMutation } = userApiSlice;
+export const { useLoginMutation, useLogoutMutation } = userApiSlice;

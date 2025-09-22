@@ -28,11 +28,13 @@ const Navigation = () => {
 
   const logoutHandler = async () => {
     try {
+      console.log("Attempting to logout...");
       await logoutApiCall().unwrap();
       dispatch(logout());
       navigate("/login");
+      console.log("Logout successful!");
     } catch (error) {
-      console.error(error);
+      console.error("Logout failed:", error);
     }
   };
 

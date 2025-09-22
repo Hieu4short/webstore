@@ -63,7 +63,7 @@ const logoutCurrentUser = asyncHandler(async (req, res) => {
         expires: new Date(0),
 
     });
-    res.status(200).json({ message: "Logged out successfully" }); 
+    res.status(200).json({ message: "Logged out successfully" });
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -139,7 +139,7 @@ const getUserById = asyncHandler(async (req, res) => {
 const updateUserById = asyncHandler(async (req, res) =>{
     const user = await User.findById(req.params.id);
     if (user) {
-        user.username = req.body.username || user.name;
+        user.username = req.body.username || user.username;
         user.email = req.body.email || user.email;
         user.isAdmin = Boolean(req.body.isAdmin);
 
@@ -156,11 +156,11 @@ const updateUserById = asyncHandler(async (req, res) =>{
     }
 })
 
-export { createUser, 
-        loginUser, 
-        logoutCurrentUser, 
-        getAllUsers, 
-        getCurrentUserProfile, 
+export { createUser,
+        loginUser,
+        logoutCurrentUser,
+        getAllUsers,
+        getCurrentUserProfile,
         updateCurrentUserProfile,
         deleteUserById,
         getUserById,

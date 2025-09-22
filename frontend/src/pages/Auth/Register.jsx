@@ -54,7 +54,7 @@ const Register = () => {
   
         <form onSubmit={submitHandler} className="w-full">
           <div className="mb-6">
-            <label htmlFor="name" className="block text-sm font-medium text-black">
+            <label htmlFor="name" className="block text-sm font-medium text-white">
               Name
             </label>
             <input
@@ -68,7 +68,7 @@ const Register = () => {
           </div>
   
           <div className="mb-6">
-            <label htmlFor="email" className="block text-sm font-medium text-black">
+            <label htmlFor="email" className="block text-sm font-medium text-white">
               Email Address
             </label>
             <input
@@ -82,7 +82,7 @@ const Register = () => {
           </div>
   
           <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-black">
+            <label htmlFor="password" className="block text-sm font-medium text-white">
               Password
             </label>
             <input
@@ -96,7 +96,7 @@ const Register = () => {
           </div>
   
           <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-black">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
               Confirm Password
             </label>
             <input
@@ -112,7 +112,7 @@ const Register = () => {
           <button
             disabled={isLoading}
             type="submit"
-            className="bg-pink-500 text-black px-4 py-2 rounded cursor-pointer my-4"
+            className="bg-pink-500 text-white px-4 py-2 rounded cursor-pointer my-4"
           >
             {isLoading ? "Registering..." : "Register"}
           </button>
@@ -121,7 +121,7 @@ const Register = () => {
         </form>
   
         <div className="mt-6">
-          <p className="text-black">
+          <p className="text-white">
             Already have an account?{" "}
             <Link
               to={redirect ? `/login?redirect=${redirect}` : "/login"}

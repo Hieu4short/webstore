@@ -47,7 +47,7 @@ const Login = () => {
 
       <form onSubmit={submitHandler} className="w-full">
         <div className="mb-6">
-          <label htmlFor="email" className="block text-sm font-medium text-black">
+          <label htmlFor="email" className="block text-sm font-medium text-white">
             Email Address
           </label>
           <input
@@ -60,7 +60,7 @@ const Login = () => {
         </div>
 
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium text-black">
+          <label htmlFor="password" className="block text-sm font-medium text-white">
             Password
           </label>
           <input
@@ -75,7 +75,7 @@ const Login = () => {
         <button
           disabled={isLoading}
           type="submit"
-          className="bg-pink-500 text-black px-4 py-2 rounded cursor-pointer my-4"
+          className="bg-pink-500 text-white px-4 py-2 rounded cursor-pointer my-4"
         >
           {isLoading ? "Signing In..." : "Sign In"}
         </button>
@@ -84,7 +84,7 @@ const Login = () => {
       </form>
 
       <div className="mt-6">
-        <p className="text-black">
+        <p className="text-white">
           New Customer?{" "}
           <Link
             to={redirect ? `/register?redirect=${redirect}` : "/register"}

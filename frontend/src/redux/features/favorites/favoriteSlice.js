@@ -1,4 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { addFavoriteToLocalStorage, removeFavoriteFromLocalStorage } from "../../../Utils/localStorage";
+
 // import reducer from "../auth/authSlice"; // This import seems unnecessary for favoriteSlice
 
 const favoriteSlice = createSlice({
@@ -9,11 +11,14 @@ const favoriteSlice = createSlice({
             //Check if the products is not already favorite
             if (!state.some((product) => product._id === action.payload._id)) {
                 state.push(action.payload)
+                addFavoriteToLocalStorage(action.payload);
             }
         },
         removeFromFavorites: (state, action) => {
             // Remove the product with the matching ID
-            return state.filter((product) => product._id !== action.payload._id);
+            const updateFavorites = state.filter((product) => product._id !== action.payload._id);
+            removeFavoriteFromLocalStorage(action.payload._id);
+            return updateFavorites;
         },
         setFavorites: (state, action) => {
             //Set the favorites from local storage

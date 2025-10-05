@@ -15,7 +15,7 @@ const store = configureStore({
         favorites: favoritesReducer,
     },
 
-    proloadedState: {
+    preloadedState: {
         favorites: initialFavorites,
     },
 

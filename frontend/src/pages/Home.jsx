@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
-import { useGetProductsQuery } from "./redux/api/productApiSlice";
-import Loader from "./components/Loader";
-import Message from "./components/Message";
-import SmallProduct from "./pages/Products/SmallProduct";
-import ProductCarousel from "./pages/Products/ProductCarousel";
-import Product from "./pages/Products/Product";
+import { useGetProductsQuery } from "../redux/api/productApiSlice";
+import Loader from "../components/Loader";
+import Message from "../components/Message";
+import SmallProduct from "./Products/SmallProduct";
+import ProductCarousel from "./Products/ProductCarousel";
+import Product from "./Products/Product";
 import { Link } from "react-router-dom";
 
 const Home = () => {

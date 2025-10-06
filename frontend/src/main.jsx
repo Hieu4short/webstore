@@ -12,7 +12,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
-import Home from "./Home.jsx";
+import Home from "./pages/Home.jsx";
 import {Route, RouterProvider, createRoutesFromElements} from "react-router";
 import { createBrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -35,6 +35,8 @@ import ProductUpdate  from './pages/Admin/ProductUpdate.jsx';
 import Favorites from './pages/Products/Favorites.jsx';
 import ProductDetails from './pages/Products/ProductDetails.jsx';
 
+import Cart from './pages/Cart.jsx';
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -43,8 +45,10 @@ const router = createBrowserRouter(
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
       <Route index={true} path='/' element={<Home />}></Route>
+      <Route path='/shop' element={<Home />}></Route>
       <Route path='/favorite' element={<Favorites />}></Route>
       <Route path='/product/:id' element={<ProductDetails />}></Route>
+      <Route path='/cart' element={<Cart />}></Route> 
 
 
       <Route path='' element={< PrivateRoute />} >

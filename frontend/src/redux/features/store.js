@@ -4,6 +4,7 @@ import { apiSlice } from "../api/apiSlice";
 import authReducer from "./auth/authSlice";
 import favoritesReducer from "./favorites/FavoriteSlice";
 import cartReducer from "./cart/cartSlice";
+import shopReducer from "./shop/shopSlice"; 
 import { getFavoritesFromLocalStorage } from "../../Utils/localStorage";
 
 
@@ -15,6 +16,7 @@ const store = configureStore({
         auth: authReducer,
         favorites: favoritesReducer,
         cart: cartReducer,
+        shop: shopReducer, 
     },
 
     preloadedState: {

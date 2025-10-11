@@ -15,7 +15,7 @@ const Cart = () => {
         dispatch(addToCart({...product, qty}));
     };
 
-    const removeFromCartHandler = () => {
+    const removeFromCartHandler = (id) => {
         dispatch(removeFromCart(id));
     }
 

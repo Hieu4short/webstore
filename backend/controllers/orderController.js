@@ -1,12 +1,13 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 // Utility Function
 function calcPrices(orderItems) {
-    const itemsPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty,0);
+    const itemsPrice = orderItems.reduce((acc, item) => acc + parseFloat(item.price) * parseFloat(item.qty), 0);
 
     const shippingPrice = itemsPrice > 100 ? 0 : 10;
-    const taxRate = 0.15;
+    const taxRate = 0.1; // Changed from 0.15 to 0.1 to match frontend
     const taxPrice = (itemsPrice * taxRate).toFixed(2);
 
     const totalPrice = (itemsPrice + shippingPrice + parseFloat(taxPrice)).toFixed(2);
@@ -19,8 +20,9 @@ function calcPrices(orderItems) {
     }
 }
 
-const createOrder = async (req, res) => {
+const createOrder = asyncHandler(async (req, res) => {
     try {
+
         const { orderItems, shippingAddress, paymentMethod } = req.body;
 
         if (orderItems && orderItems.length === 0) {
@@ -65,10 +67,11 @@ const createOrder = async (req, res) => {
           res.status(201).json(createdOrder);
 
     } catch (error) {
+        console.error("Error in createOrder:", error);
         res.status(500).json({ error: error.message});
 
     }
-};
+});
 
 const getAllOrders = async (req, res) => {
     try {

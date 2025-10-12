@@ -11,6 +11,7 @@ import {
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
 } from "../../redux/api/orderApiSlice";
+import moment from "moment";
 
 const Order = () => {
 
@@ -28,7 +29,6 @@ const Order = () => {
 
 
       useEffect(() => {
-        console.log("Order data in useEffect:", order); // Added console.log
         if (!errorPayPal && !loadingPayPal && paypal.clientId) {
             const loadingPayPalScript = async () => {
                 paypalDispatch({
@@ -55,7 +55,6 @@ const Order = () => {
           try {
             await payOrder({ orderId, details });
             refetch();
-            console.log("Order refetched after payment. New order data:", order); // Added console.log
             toast.success("Order is paid");
           } catch (error) {
             toast.error(error?.data?.message || error.message);
@@ -158,9 +157,8 @@ const Order = () => {
                             {order.paymentMethod}
                         </p>
                         
-                        {console.log("Before rendering Paid/Not Paid. isPaid:", order.isPaid, "paidAt:", order.paidAt)}
                         {order.isPaid ? (
-                            <Message variant="success">Paid on {order.paidAt}</Message>
+                            <Message variant="success">Paid on {moment(order.paidAt).format('MMMM Do YYYY, h:mm:ss a')}</Message>
                         ) : (
                             <Message variant="danger">Not paid yet</Message>
                         )}

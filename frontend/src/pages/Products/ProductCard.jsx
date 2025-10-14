@@ -5,6 +5,7 @@ import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HeartIcon from "./HeartIcon";
+import CompareButton from "../../components/CompareButton";
 
 const ProductCard = ({ p }) => {
     const dispatch = useDispatch();
@@ -61,10 +62,18 @@ const ProductCard = ({ p }) => {
                     strokeWidth={2} d="M1 5h12m0 0L9 1m4 4L9 9"/>
                 </svg>
               </Link>
+
+              <CompareButton product={p} />
   
-              <button className="p-2 rounded-full" onClick={() => addToCartHandler(p, 1)}>
+                <button className="p-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white transition-colors" 
+                    onClick={() => addToCartHandler(p, 1)}
+                >
+                    <AiOutlineShoppingCart size={25} />
+                </button>
+  
+              {/* <button className="p-2 rounded-full" onClick={() => addToCartHandler(p, 1)}>
                 <AiOutlineShoppingCart size={25} />
-              </button>
+              </button> */}
             </section>
           </div>
         </div>

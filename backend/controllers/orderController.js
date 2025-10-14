@@ -166,6 +166,15 @@ const getAllOrders = async (req, res) => {
           email_address: req.body.payer.email_address,
         };
   
+        // Update product stock
+        for (const item of order.orderItems) {
+          const product = await Product.findById(item.product);
+          if (product) {
+            product.countInStock -= item.qty;
+            await product.save();
+          }
+        }
+
         const updateOrder = await order.save();
         res.status(200).json(updateOrder);
       } else {

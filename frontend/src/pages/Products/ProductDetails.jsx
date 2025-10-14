@@ -11,6 +11,7 @@ import HeartIcons from "./HeartIcon";
 import Ratings from "./Ratings";
 import ProductTabs from "./ProductTabs";
 import { addToCart  } from "../../redux/features/cart/cartSlice";
+import CompareButton from "../../components/CompareButton";
 
 
 const ProductDetails = () => {
@@ -103,10 +104,10 @@ const addToCartHandler = () => {
                                                 <FaStar className="mr-3 text-white text-lg" />
                                                 <span className="text-white">Ratings: {product.rating}</span>
                                             </div>
-                                            <div className="flex items-center">
+                                            {/* <div className="flex items-center">
                                                 <FaShoppingCart className="mr-3 text-white text-lg" />
                                                 <span className="text-white">Quantity: {product.quantity}</span>
-                                            </div>
+                                            </div> */}
                                             <div className="flex items-center">
                                                 <FaBox className="mr-3 text-white text-lg" />
                                                 <span className="text-white">In Stock: {product.countInStock}</span>
@@ -134,6 +135,8 @@ const addToCartHandler = () => {
                                         )}
                                     </div>
 
+                                    {/* CompareButton*/}
+                                    <div className="flex flex-wrap gap-4"></div>
                                     {/* Add to Cart Button */}
                                     <div className="btn-container">
                                         <button 
@@ -143,6 +146,7 @@ const addToCartHandler = () => {
                                         >
                                             {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                                         </button>
+                                        <CompareButton product={product} />
                                     </div>
                                 </div>
                             </div>

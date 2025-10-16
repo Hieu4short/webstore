@@ -1,21 +1,20 @@
+/* Đảm bảo sidebar có đủ không gian tối thiểu */
 #navigation-container {
-    width: 4%;
-    transition: width 0.3s ease-in-out;
-    overflow: visible; /* Hide overflowing content during transition */
-  }
-  
-  #navigation-container:hover {
-    width: 12%;
-    overflow: visible;
-  }
-  
-  /* Initially hide nav-item-name */
-  .nav-item-name {
-    display: none;
-    transition: opacity 0.2s ease-in-out; /* Add opacity transition */
-  }
-  
-  #navigation-container:hover .nav-item-name {
-    display: block;
-    opacity: 1;
-  }
+  min-height: 100vh;
+}
+
+/* Smooth transitions */
+#navigation-container * {
+  transition: all 0.3s ease;
+}
+
+/* Đảm bảo dropdown luôn hiển thị đúng */
+#navigation-container .relative {
+  position: relative;
+}
+
+/* Tránh text bị tràn */
+#navigation-container span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

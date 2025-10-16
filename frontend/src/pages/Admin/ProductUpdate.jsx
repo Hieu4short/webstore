@@ -141,10 +141,11 @@ const ProductUpdate = () => {
           )}
 
           <div className="mb-3">
-            <label className="text-white py-2 px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
+            <label htmlFor="productImage" className="text-white py-2 px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
               {image ? "Change Image" : "Upload Image"}
               <input
                 type="file"
+                id="productImage"
                 name="image"
                 accept="image/*"
                 onChange={uploadFileHandler}
@@ -159,6 +160,7 @@ const ProductUpdate = () => {
                 <label htmlFor="name">Name</label> <br />
                 <input
                   type="text"
+                  name="name"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -169,6 +171,7 @@ const ProductUpdate = () => {
                 <label htmlFor="price">Price</label> <br />
                 <input
                   type="number"
+                  name="price"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -181,6 +184,7 @@ const ProductUpdate = () => {
                 <label htmlFor="quantity">Quantity</label> <br />
                 <input
                   type="number"
+                  name="quantity"
                   min="1"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={quantity}
@@ -191,6 +195,7 @@ const ProductUpdate = () => {
                 <label htmlFor="brand">Brand</label> <br />
                 <input
                   type="text"
+                  name="brand"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
@@ -202,6 +207,7 @@ const ProductUpdate = () => {
               Description
             </label>
             <textarea
+              name="description"
               className="p-2 mb-3 bg-[#101011] border rounded-lg w-[95%] text-white"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -212,6 +218,7 @@ const ProductUpdate = () => {
                 <label htmlFor="stock">Count In Stock</label> <br />
                 <input
                   type="number"
+                  name="countInStock"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
@@ -221,6 +228,7 @@ const ProductUpdate = () => {
               <div>
                 <label htmlFor="category">Category</label> <br />
                 <select
+                  name="category"
                   placeholder="Choose Category"
                   className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={category}

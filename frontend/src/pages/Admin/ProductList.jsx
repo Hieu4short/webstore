@@ -106,7 +106,7 @@ const ProductList = () => {
                                     
                                     {/* Upload Area */}
                                     <div className="flex-1">
-                                        <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-700/50 hover:bg-gray-700/70 transition-colors duration-200">
+                                        <label htmlFor="productImage" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer bg-gray-700/50 hover:bg-gray-700/70 transition-colors duration-200">
                                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                 <FaUpload className="w-8 h-8 mb-3 text-gray-400" />
                                                 <p className="mb-2 text-sm text-gray-400">
@@ -116,6 +116,7 @@ const ProductList = () => {
                                             </div>
                                             <input 
                                                 type="file" 
+                                                id="productImage" 
                                                 name="image" 
                                                 accept="image/*" 
                                                 onChange={uploadFileHandler} 
@@ -137,11 +138,13 @@ const ProductList = () => {
                                 {/* Name and Price Row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="productName" className="block text-sm font-medium text-gray-300 mb-2">
                                             Product Name *
                                         </label>
                                         <input 
                                             type="text" 
+                                            id="productName"
+                                            name="productName"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             value={name} 
                                             onChange={e => setName(e.target.value)}
@@ -150,11 +153,13 @@ const ProductList = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
                                             Price ($) *
                                         </label>
                                         <input 
                                             type="number" 
+                                            id="price"
+                                            name="price"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             value={price} 
                                             onChange={e => setPrice(e.target.value)}
@@ -169,11 +174,13 @@ const ProductList = () => {
                                 {/* Quantity and Brand Row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-300 mb-2">
                                             Quantity *
                                         </label>
                                         <input 
                                             type="number" 
+                                            id="quantity"
+                                            name="quantity"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             value={quantity} 
                                             onChange={e => setQuantity(e.target.value)}
@@ -183,11 +190,13 @@ const ProductList = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="brand" className="block text-sm font-medium text-gray-300 mb-2">
                                             Brand *
                                         </label>
                                         <input 
                                             type="text" 
+                                            id="brand"
+                                            name="brand"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             value={brand} 
                                             onChange={e => setBrand(e.target.value)}
@@ -199,10 +208,12 @@ const ProductList = () => {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
                                         Description *
                                     </label>
                                     <textarea 
+                                        id="description"
+                                        name="description"
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 resize-vertical min-h-[120px]"
                                         value={description} 
                                         onChange={e => setDescription(e.target.value)}
@@ -214,11 +225,13 @@ const ProductList = () => {
                                 {/* Stock and Category Row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="countInStock" className="block text-sm font-medium text-gray-300 mb-2">
                                             Count in Stock *
                                         </label>
                                         <input 
                                             type="number" 
+                                            id="countInStock"
+                                            name="countInStock"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             value={stock} 
                                             onChange={e => setStock(e.target.value)}
@@ -228,10 +241,12 @@ const ProductList = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
                                             Category *
                                         </label>
                                         <select 
+                                            id="category"
+                                            name="category"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                                             onChange={e => setCategory(e.target.value)}
                                             required

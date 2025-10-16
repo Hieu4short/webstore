@@ -13,9 +13,7 @@ import ProductTabs from "./ProductTabs";
 import { addToCart  } from "../../redux/features/cart/cartSlice";
 import CompareButton from "../../components/CompareButton";
 
-
 const ProductDetails = () => {
-
     const {id: productId} = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -27,7 +25,6 @@ const ProductDetails = () => {
     const {data: product, isLoading, refetch, error} = useGetProductDetailsQuery(productId);
     const {userInfo} = useSelector(state => state.auth);
     const [createReview, {isLoading: loadingProductReview}] = useCreateReviewMutation();
-
 
     const submitHandler = async (e) => {
         e.preventDefault();
@@ -43,91 +40,107 @@ const ProductDetails = () => {
         }
     };
 
-const addToCartHandler = () => {
-    dispatch(addToCart({...product, qty}));
-    navigate("/cart");
-}
+    const addToCartHandler = () => {
+        dispatch(addToCart({...product, qty}));
+        navigate("/cart");
+    }
 
     return (
         <>
-            <div>
-                <Link to="/" className="text-white font-semibold hover:underline ml-[10rem]">Go Back</Link>
+            {/* Go Back Link - Fixed responsive margin */}
+            <div className="container mx-auto px-4 mt-4">
+                <Link 
+                    to="/" 
+                    className="inline-block text-white font-semibold hover:underline mb-4 sm:mb-6"
+                >
+                    ← Go Back
+                </Link>
             </div>
 
             {isLoading ? (<Loader/>) : error ? (<Message variant="danger">{error?.data?.message || error.message}</Message>) : (
                 <>
                     {/* First Part - Product Image and Details */}
-                    <div className="container mx-auto px-4 mt-6">
-                        <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="container mx-auto px-4">
+                        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
                             {/* Left Column - Product Image */}
-                            <div className="lg:w-2/5">
-                                <div className="bg-gray-800 rounded-lg p-4">
-                                    <img 
-                                        src={product.image} 
-                                        alt={product.name} 
-                                        className="w-full h-auto max-w-md mx-auto object-contain rounded-lg"
-                                    />
-                                    <HeartIcons product={product}/>
+                            <div className="lg:w-2/5 xl:w-2/5">
+                                <div className="bg-gray-800 rounded-lg p-3 sm:p-4 lg:p-6">
+                                    <div className="relative">
+                                        <img 
+                                            src={product.image} 
+                                            alt={product.name} 
+                                            className="w-full h-auto max-w-full mx-auto object-contain rounded-lg"
+                                        />
+                                        <HeartIcons product={product}/>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Right Column - Product Details */}
-                            <div className="lg:w-3/5">
-                                <div className="flex flex-col space-y-6">
-                                    <h2 className="text-3xl font-bold text-white">{product.name}</h2>
+                            <div className="lg:w-3/5 xl:w-3/5">
+                                <div className="flex flex-col space-y-4 sm:space-y-6">
+                                    {/* Product Name */}
+                                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight">
+                                        {product.name}
+                                    </h2>
                                     
-                                    <p className="text-gray-300 text-lg leading-relaxed">
+                                    {/* Product Description */}
+                                    <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
                                         {product.description}
                                     </p>
                                     
-                                    <p className="text-4xl font-extrabold text-pink-600">$ {product.price}</p>
+                                    {/* Product Price */}
+                                    <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-pink-600">
+                                        $ {product.price}
+                                    </p>
 
                                     {/* Product Info Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                        <div className="space-y-3 sm:space-y-4">
                                             <div className="flex items-center">
-                                                <FaStore className="mr-3 text-white text-lg" />
-                                                <span className="text-white">Brand: {product.brand}</span>
+                                                <FaStore className="mr-2 sm:mr-3 text-white text-base sm:text-lg flex-shrink-0" />
+                                                <span className="text-white text-sm sm:text-base">Brand: {product.brand}</span>
                                             </div>
                                             <div className="flex items-center">
-                                                <FaClock className="mr-3 text-white text-lg" />
-                                                <span className="text-white">Added: {moment(product.createdAt).fromNow()}</span>
+                                                <FaClock className="mr-2 sm:mr-3 text-white text-base sm:text-lg flex-shrink-0" />
+                                                <span className="text-white text-sm sm:text-base">Added: {moment(product.createdAt).fromNow()}</span>
                                             </div>
                                             <div className="flex items-center">
-                                                <FaStar className="mr-3 text-white text-lg" />
-                                                <span className="text-white">Reviews: {product.numReviews}</span>
+                                                <FaStar className="mr-2 sm:mr-3 text-white text-base sm:text-lg flex-shrink-0" />
+                                                <span className="text-white text-sm sm:text-base">Reviews: {product.numReviews}</span>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-3 sm:space-y-4">
                                             <div className="flex items-center">
-                                                <FaStar className="mr-3 text-white text-lg" />
-                                                <span className="text-white">Ratings: {product.rating}</span>
+                                                <FaStar className="mr-2 sm:mr-3 text-white text-base sm:text-lg flex-shrink-0" />
+                                                <span className="text-white text-sm sm:text-base">Ratings: {Math.round(product.rating * 10) / 10}</span>
                                             </div>
-                                            {/* <div className="flex items-center">
-                                                <FaShoppingCart className="mr-3 text-white text-lg" />
-                                                <span className="text-white">Quantity: {product.quantity}</span>
-                                            </div> */}
                                             <div className="flex items-center">
-                                                <FaBox className="mr-3 text-white text-lg" />
-                                                <span className="text-white">In Stock: {product.countInStock}</span>
+                                                <FaBox className="mr-2 sm:mr-3 text-white text-base sm:text-lg flex-shrink-0" />
+                                                <span className="text-white text-sm sm:text-base">In Stock: {product.countInStock}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Ratings and Quantity Selector */}
-                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                        <Ratings value={product.rating} text={`${product.numReviews} reviews`}/>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6">
+                                        <div className="flex-1">
+                                            <Ratings 
+                                                value={product.rating} 
+                                                text={`${product.numReviews} reviews`}
+                                            />
+                                        </div>
                                         
                                         {product.countInStock > 0 && (
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-white">Quantity:</span>
+                                            <div className="flex items-center gap-3 sm:gap-4 bg-gray-700 px-3 sm:px-4 py-2 rounded-lg">
+                                                <span className="text-white text-sm sm:text-base whitespace-nowrap">Quantity:</span>
                                                 <select 
                                                     value={qty} 
                                                     onChange={e => setQty(Number(e.target.value))} 
-                                                    className="p-2 w-20 rounded-lg text-black"
+                                                    className="p-2 w-16 sm:w-20 rounded-lg text-black text-sm sm:text-base"
                                                 >
-                                                    {[...Array(product.countInStock).keys()].map((x) => (
+                                                    {[...Array(Math.min(product.countInStock, 10)).keys()].map((x) => (
                                                         <option key={x + 1} value={x + 1}>{x + 1}</option>
                                                     ))}
                                                 </select>
@@ -135,26 +148,29 @@ const addToCartHandler = () => {
                                         )}
                                     </div>
 
-                                    {/* CompareButton*/}
-                                    <div className="flex flex-wrap gap-4"></div>
-                                    {/* Add to Cart Button */}
-                                    <div className="btn-container">
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col xs:flex-row gap-3 sm:gap-4">
+                                        {/* Add to Cart Button */}
                                         <button 
                                             onClick={addToCartHandler} 
                                             disabled={product.countInStock === 0} 
-                                            className="bg-pink-600 text-white py-3 px-8 rounded-lg text-lg font-semibold hover:bg-pink-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex-1 bg-pink-600 text-white py-3 px-4 sm:px-6 rounded-lg text-base sm:text-lg font-semibold hover:bg-pink-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                         >
                                             {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                                         </button>
-                                        <CompareButton product={product} />
+                                        
+                                        {/* Compare Button */}
+                                        <div className="xs:flex-shrink-0">
+                                            <CompareButton product={product} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Second Part - Product Tabs (Unchanged) */}
-                    <div className="container mx-auto px-4 mt-12">
+                    {/* Second Part - Product Tabs */}
+                    <div className="container mx-auto px-4 mt-8 sm:mt-12">
                         <ProductTabs 
                             loadingProductReview={loadingProductReview} 
                             userInfo={userInfo}

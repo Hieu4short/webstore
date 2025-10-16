@@ -54,12 +54,13 @@ const Register = () => {
   
         <form onSubmit={submitHandler} className="w-full">
           <div className="mb-6">
-            <label htmlFor="name" className="block text-sm font-medium text-white">
+            <label htmlFor="username" className="block text-sm font-medium text-white">
               Name
             </label>
             <input
               type="text"
-              id="name"
+              id="username"
+              name="username"
               className="mt-2 p-2 border rounded w-full"
               placeholder="Enter Your Name"
               value={username}
@@ -74,6 +75,7 @@ const Register = () => {
             <input
               type="email"
               id="email"
+              name="email"
               className="mt-2 p-2 border rounded w-full"
               placeholder="Enter Your Email address"
               value={email}
@@ -88,6 +90,7 @@ const Register = () => {
             <input
               type="password"
               id="password"
+              name="password"
               className="mt-2 p-2 border rounded w-full"
               placeholder="Enter Your Password"
               value={password}
@@ -102,6 +105,7 @@ const Register = () => {
             <input
               type="password"
               id="confirmPassword"
+              name="confirmPassword"
               className="mt-2 p-2 border rounded w-full"
               placeholder="Confirm Your Password"
               value={confirmPassword}

@@ -10,18 +10,22 @@ const getImageUrl = (imgPath) => {
 
 const SmallProduct = ({ product }) => {
   return (
-    <div className="p-3">
-      <img
-        src={getImageUrl(product.image)}
-        alt={product.name}
-        className="w-full h-48 object-contain rounded"
-      />
-      <HeartIcons product={product} />
-      <div className="mt-3">
+    <div className="p-2 sm:p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors duration-300">
+      <div className="relative">
+        <img
+          src={getImageUrl(product.image)}
+          alt={product.name}
+          className="w-full h-32 xs:h-36 sm:h-40 md:h-44 object-contain rounded"
+        />
+        <HeartIcons product={product} />
+      </div>
+      <div className="mt-2 sm:mt-3">
         <Link to={`/product/${product._id}`}>
-          <h2 className="flex justify-between items-center text-white font-semibold">
-            <span>{product.name}</span>
-            <span className="bg-pink-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+          <h2 className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1 xs:gap-2 text-white font-semibold">
+            <span className="text-sm sm:text-base line-clamp-1 xs:line-clamp-2 flex-1">
+              {product.name}
+            </span>
+            <span className="bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap self-start xs:self-auto">
               ${product.price}
             </span>
           </h2>

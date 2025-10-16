@@ -13,7 +13,7 @@ function App() {
     <>
       <ToastContainer />
       <Navigation />
-      <main className="py-3">
+      <main className="py-3 md:ml-[4%]">
         <Outlet />
       </main>
 

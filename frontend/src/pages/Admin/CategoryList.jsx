@@ -126,8 +126,11 @@ const CategoryList = () => {
                                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-xl border border-gray-700 p-6">
                                         <h3 className="text-lg font-semibold text-white mb-4">Create New Category</h3>
                                         <form onSubmit={handleCreate} className="flex gap-4">
+                                            <label htmlFor="newCategoryName" className="sr-only">Category Name</label>
                                             <input
                                                 type="text"
+                                                id="newCategoryName"
+                                                name="newCategoryName"
                                                 placeholder="Enter category name"
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
@@ -163,12 +166,17 @@ const CategoryList = () => {
                                                         <FaTag className="text-pink-500" />
                                                     </div>
                                                     {editableCategoryId === category._id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={editableCategoryName}
-                                                            onChange={(e) => setEditableCategoryName(e.target.value)}
-                                                            className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                                        />
+                                                        <>
+                                                            <label htmlFor={`editCategoryName-${category._id}`} className="sr-only">Edit Category Name</label>
+                                                            <input
+                                                                type="text"
+                                                                id={`editCategoryName-${category._id}`}
+                                                                name={`editCategoryName-${category._id}`}
+                                                                value={editableCategoryName}
+                                                                onChange={(e) => setEditableCategoryName(e.target.value)}
+                                                                className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                                                            />
+                                                        </>
                                                     ) : (
                                                         <h3 className="text-lg font-semibold text-white">
                                                             {category.name}

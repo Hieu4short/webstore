@@ -7,6 +7,7 @@ import cartReducer from "./cart/cartSlice";
 import shopReducer from "./shop/shopSlice"; 
 import { getFavoritesFromLocalStorage } from "../../Utils/localStorage";
 import comparisonReducers from "./comparison/comparisonSlice";
+import chatbotReducer from './chatbot/chatbotSlice';
 
 
 const initialFavorites = getFavoritesFromLocalStorage() || [];
@@ -19,6 +20,7 @@ const store = configureStore({
         comparison: comparisonReducers, 
         cart: cartReducer,
         shop: shopReducer, 
+        chatbot: chatbotReducer,
     },
 
     preloadedState: {

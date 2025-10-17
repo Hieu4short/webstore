@@ -4,6 +4,7 @@ import {ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductComparison from "./components/ProductComparison";
 import { useSelector } from "react-redux";
+import ChatbotWidget from './components/ChatbotWidget';
 
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
       </main>
 
       {comparisonItems && comparisonItems.length > 0 && <ProductComparison />}
+
+      <ChatbotWidget />
     </>
   )
 }

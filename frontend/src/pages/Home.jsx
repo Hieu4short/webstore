@@ -18,17 +18,19 @@ const Home = () => {
     <div className="container mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
       {/* Main Content - Layout cột trái/phải */}
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8">
-        {/* Cột trái: Danh sách sản phẩm chính - Chiếm 2/3 trên desktop */}
-        <div className="xl:flex-[2] lg:flex-[3]">
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        {/* Cột trái: Danh sách sản phẩm chính */}
+        <div className="xl:flex-[3] lg:flex-[2] order-2 xl:order-1">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
             {data?.products?.map((product) => (
-              <SmallProduct key={product._id} product={product} />
+              <div key={product._id} className="flex justify-center">
+                <SmallProduct product={product} />
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Cột phải: Carousel - Chiếm 1/3 trên desktop, full width trên mobile */}
-        <div className="xl:flex-1 lg:w-full">
+        {/* Cột phải: Carousel */}
+        <div className="xl:flex-1 lg:flex-none xl:w-80 2xl:w-96 order-1 xl:order-2">
           <div className="sticky top-4">
             <ProductCarousel />
           </div>
@@ -51,8 +53,8 @@ const Home = () => {
         </div>
 
         {/* Special Products Grid */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-          {data?.products?.map((product) => (
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+          {data?.products?.slice(0, 12)?.map((product) => (
             <div key={product._id} className="flex justify-center">
               <Product product={product} />
             </div>

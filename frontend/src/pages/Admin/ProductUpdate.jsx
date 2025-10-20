@@ -26,6 +26,8 @@ const ProductUpdate = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [stock, setStock] = useState(0);
+  const [imageFile, setImageFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Queries & Mutations
   const { data: categories = [] } = useFetchCategoriesQuery();
@@ -39,7 +41,7 @@ const ProductUpdate = () => {
       setName(productData.name || "");
       setDescription(productData.description || "");
       setPrice(productData.price || "");
-      setCategory(productData.category?._id || "");
+      setCategory(productData.category?._id || productData.category || "");
       setQuantity(productData.quantity || "");
       setBrand(productData.brand || "");
       setImage(productData.image || "");
@@ -47,54 +49,83 @@ const ProductUpdate = () => {
     }
   }, [productData]);
 
-  // Upload image handler
+  // Upload image handler - FIXED
   const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Hiển thị preview ảnh ngay lập tức
+    const objectUrl = URL.createObjectURL(file);
+    setImage(objectUrl);
+    setImageFile(file);
+
+    // Tự động upload ảnh lên server
+    setIsUploading(true);
     const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    formData.append("image", file);
+    
     try {
       const res = await uploadProductImage(formData).unwrap();
       toast.success("Image uploaded successfully", { position: "top-right" });
-      setImage(res.image); // lưu lại đường dẫn trả về từ backend
+      // Cập nhật đường dẫn ảnh từ server
+      setImage(res.image);
     } catch (err) {
-      toast.error("Image upload failed", { position: "top-right" });
+      console.error("Upload error:", err);
+      toast.error(err?.data?.message || "Image upload failed", { position: "top-right" });
+      // Rollback preview nếu upload thất bại
+      setImage(productData?.image || "");
+      setImageFile(null);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Handle update
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
+  // Handle update - FIXED FOR IMAGE
+// Handle update - FIXED FOR IMAGE
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (isUploading) {
+    toast.warning("Please wait for image upload to complete", { position: "top-right" });
+    return;
+  }
 
-      if (image instanceof File) {
-        formData.append("image", image);
-      } else {
-        formData.append("image", image); 
-      }
+  try {
+    const formData = new FormData();
 
-      formData.append("image", image);
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("category", category);
-      formData.append("quantity", quantity);
-      formData.append("brand", brand);
-      formData.append("countInStock", stock);
+    // Append all product data
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("price", price.toString());
+    formData.append("category", category);
+    formData.append("quantity", quantity.toString());
+    formData.append("brand", brand);
+    formData.append("countInStock", stock.toString());
 
-      const result = await updateProduct({ productId: params._id, formData });
+    // QUAN TRỌNG: Luôn gửi image field với đường dẫn ảnh hiện tại
+    formData.append("image", image);
 
-      if (result?.error) {
-        toast.error(result.error, { position: "top-right" });
-      } else {
-        toast.success("Product successfully updated", { position: "top-right" });
-        refetch();
-        navigate("/admin/allproductslist");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Product update failed", { position: "top-right" });
+    console.log("Updating product with image path:", image);
+
+    const result = await updateProduct({ 
+      productId: params._id, 
+      formData 
+    });
+
+    if (result?.error) {
+      console.error("Update error:", result.error);
+      const errorMessage = result.error.data?.message || result.error.data?.error || "Update failed";
+      toast.error(errorMessage, { position: "top-right" });
+    } else {
+      toast.success("Product successfully updated", { position: "top-right" });
+      await refetch();
+      navigate("/admin/allproductslist");
     }
-  };
+  } catch (err) {
+    console.error("Submit error:", err);
+    toast.error("Product update failed", { position: "top-right" });
+  }
+};
 
   // Handle delete
   const handleDelete = async () => {
@@ -120,7 +151,14 @@ const ProductUpdate = () => {
   const getImageUrl = (imgPath) => {
     if (!imgPath) return "";
     if (imgPath.startsWith("http")) return imgPath;
+    if (imgPath.startsWith("blob:")) return imgPath; // Cho blob URLs (preview)
     return `http://localhost:5050${imgPath}`;
+  };
+
+  // Remove image
+  const handleRemoveImage = () => {
+    setImage("");
+    setImageFile(null);
   };
 
   return (
@@ -128,51 +166,59 @@ const ProductUpdate = () => {
       <div className="flex flex-col md:flex-row">
         <AdminMenu />
         <div className="md:w-3/4 p-3">
-          <div className="h-12">Update / Delete Product</div>
-
-          {image && (
-            <div className="text-center">
-              <img
-                src={getImageUrl(image)}
-                alt="product"
-                className="block mx-auto max-h-[150px] object-cover"
-              />
-            </div>
-          )}
+          <div className="h-12 font-bold text-xl text-white">Update / Delete Product</div>
 
           <div className="mb-3">
-            <label htmlFor="productImage" className="text-white py-2 px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
+            <label className="border border-gray-300 text-white py-2 px-4 block w-full text-center rounded-lg cursor-pointer font-bold hover:bg-gray-800 transition duration-200">
               {image ? "Change Image" : "Upload Image"}
               <input
                 type="file"
-                id="productImage"
                 name="image"
                 accept="image/*"
                 onChange={uploadFileHandler}
                 className="hidden"
+                disabled={isUploading}
               />
             </label>
+            {isUploading && (
+              <div className="text-center text-yellow-500 mt-2">Uploading image...</div>
+            )}
           </div>
+
+          {image && (
+            <div className="text-center my-4 relative">
+              <img
+                src={getImageUrl(image)}
+                alt="product"
+                className="block mx-auto max-h-[200px] object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           <div className="p-3">
             <div className="flex flex-wrap">
-              <div className="one">
-                <label htmlFor="name">Name</label> <br />
+              <div className="one mb-4">
+                <label htmlFor="name" className="block text-white mb-2">Name</label>
                 <input
                   type="text"
-                  name="name"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
-              <div className="two">
-                <label htmlFor="price">Price</label> <br />
+              <div className="two mb-4">
+                <label htmlFor="price" className="block text-white mb-2">Price</label>
                 <input
                   type="number"
-                  name="price"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
@@ -180,60 +226,55 @@ const ProductUpdate = () => {
             </div>
 
             <div className="flex flex-wrap">
-              <div>
-                <label htmlFor="quantity">Quantity</label> <br />
+              <div className="mb-4">
+                <label htmlFor="quantity" className="block text-white mb-2">Quantity</label>
                 <input
                   type="number"
-                  name="quantity"
                   min="1"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                 />
               </div>
-              <div>
-                <label htmlFor="brand">Brand</label> <br />
+              <div className="mb-4">
+                <label htmlFor="brand" className="block text-white mb-2">Brand</label>
                 <input
                   type="text"
-                  name="brand"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                 />
               </div>
             </div>
 
-            <label htmlFor="description" className="my-5">
-              Description
-            </label>
-            <textarea
-              name="description"
-              className="p-2 mb-3 bg-[#101011] border rounded-lg w-[95%] text-white"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-white mb-2">Description</label>
+              <textarea
+                className="p-4 bg-[#101011] border rounded-lg w-[95%] text-white h-32"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
 
             <div className="flex justify-between">
-              <div>
-                <label htmlFor="stock">Count In Stock</label> <br />
+              <div className="mb-4">
+                <label htmlFor="stock" className="block text-white mb-2">Count In Stock</label>
                 <input
                   type="number"
-                  name="countInStock"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                 />
               </div>
 
-              <div>
-                <label htmlFor="category">Category</label> <br />
+              <div className="mb-4">
+                <label htmlFor="category" className="block text-white mb-2">Category</label>
                 <select
-                  name="category"
-                  placeholder="Choose Category"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
+                  className="p-4 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 >
+                  <option value="">Choose Category</option>
                   {categories?.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
@@ -243,16 +284,17 @@ const ProductUpdate = () => {
               </div>
             </div>
 
-            <div>
+            <div className="flex gap-4 mt-8">
               <button
                 onClick={handleSubmit}
-                className="py-4 px-10 mt-5 rounded-lg text-lg font-bold bg-green-600 mr-6"
+                disabled={isUploading}
+                className="py-4 px-10 rounded-lg text-lg font-bold bg-green-600 hover:bg-green-700 transition duration-200 disabled:bg-gray-600"
               >
-                Update
+                {isUploading ? "Uploading..." : "Update"}
               </button>
               <button
                 onClick={handleDelete}
-                className="py-4 px-10 mt-5 rounded-lg text-lg font-bold bg-pink-600"
+                className="py-4 px-10 rounded-lg text-lg font-bold bg-pink-600 hover:bg-pink-700 transition duration-200"
               >
                 Delete
               </button>

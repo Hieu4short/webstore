@@ -6,6 +6,7 @@ import SmallProduct from "./Products/SmallProduct";
 import ProductCarousel from "./Products/ProductCarousel";
 import Product from "./Products/Product";
 import { Link } from "react-router-dom";
+import SearchBox from "../components/SearchBox";
 
 const Home = () => {
   const { keyword } = useParams();
@@ -16,6 +17,19 @@ const Home = () => {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
+      {/* THÊM SEARCH BOX Ở ĐẦU TRANG */}
+      <div className="mb-8 sm:mb-12 text-center">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+          Welcome to WEBSTORE
+        </h1>
+        <p className="text-gray-300 text-lg mb-6 max-w-2xl mx-auto">
+          Discover amazing products at great prices
+        </p>
+        <div className="max-w-2xl mx-auto">
+          <SearchBox />
+        </div>
+      </div>
+
       {/* Main Content - Layout cột trái/phải */}
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8">
         {/* Cột trái: Danh sách sản phẩm chính */}
@@ -41,7 +55,7 @@ const Home = () => {
       <div className="mt-8 sm:mt-12 lg:mt-16">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white text-center sm:text-left">
             Special Products
           </h1>
           <Link

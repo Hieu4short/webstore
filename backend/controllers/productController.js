@@ -3,34 +3,8 @@ import Product from "../models/productModel.js";
 
 const addProduct = asyncHandler(async (req, res) => {
     try {
-        const {name, description, price, category, quantity, brand} = req.fields;
-            switch (true) {
-                case !name:
-                    return res.json({error: "Name is required"});
-                case !description:
-                    return res.json({error: "Description is required"});
-                case !price:
-                    return res.json({error: "Price is required"});
-                case !category:
-                    return res.json({error: "Category is required"});
-                case !quantity:
-                    return res.json({error: "Quantity is required"});
-                case !brand:
-                    return res.json({error: "Brand is required"});    
-            }
-
-        const product = new Product({...req.fields});
-        await product.save();
-        res.json(product);
-    } catch (error) {
-        console.error(error);
-        res.status(400).json(error.message)
-    }
-});
-
-const updateProductDetails = asyncHandler(async (req,res) => {
-    try {
-        const {name, description, price, category, quantity, brand} = req.fields;
+        const {name, description, price, category, quantity, brand} = req.body;
+        
         switch (true) {
             case !name:
                 return res.json({error: "Name is required"});
@@ -46,15 +20,86 @@ const updateProductDetails = asyncHandler(async (req,res) => {
                 return res.json({error: "Brand is required"});    
         }
 
-        const product = await Product.findByIdAndUpdate(req.params.id, {...req.fields}, {new: true});
+        const productData = {
+            name,
+            description,
+            price,
+            category,
+            quantity,
+            brand,
+            image: req.file ? req.file.path : undefined
+        };
+
+        const product = new Product(productData);
         await product.save();
+        res.json(product);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json(error.message)
+    }
+});
+
+const updateProductDetails = asyncHandler(async (req,res) => {
+    try {
+        console.log("Update request fields:", req.fields);
+        console.log("Update request file:", req.file);
+        console.log("Product ID:", req.params.id);
+
+        const { name, description, price, category, quantity, brand, countInStock, image } = req.fields;
+        
+        // Validation
+        const requiredFields = { name, description, price, category, quantity, brand };
+        for (const [field, value] of Object.entries(requiredFields)) {
+            if (!value) {
+                return res.status(400).json({ error: `${field.charAt(0).toUpperCase() + field.slice(1)} is required` });
+            }
+        }
+
+        // Check if product exists
+        const existingProduct = await Product.findById(req.params.id);
+        if (!existingProduct) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        const updateData = {
+            name: name.trim(),
+            description: description.trim(),
+            price: Number(price),
+            category: category.trim(),
+            quantity: Number(quantity),
+            brand: brand.trim(),
+            countInStock: Number(countInStock || existingProduct.countInStock)
+        };
+
+        // QUAN TRỌNG: Xử lý ảnh - 3 trường hợp
+        if (req.file) {
+            // CASE 1: Có file ảnh mới được upload
+            updateData.image = req.file.path;
+            console.log("New image uploaded:", req.file.path);
+        } else if (image && image !== existingProduct.image) {
+            // CASE 2: Có đường dẫn ảnh mới từ client (đã upload trước đó)
+            updateData.image = image;
+            console.log("Image path updated:", image);
+        } else {
+            // CASE 3: Giữ nguyên ảnh cũ
+            updateData.image = existingProduct.image;
+            console.log("Keep existing image:", existingProduct.image);
+        }
+
+        const product = await Product.findByIdAndUpdate(
+            req.params.id, 
+            updateData, 
+            { new: true, runValidators: true }
+        );
+        
+        console.log("Updated product with image:", product.image);
         res.json(product);
 
     } catch (error) {
-        console.error(error);
-        res.status(400).json(error.message);
+        console.error("Update error:", error);
+        res.status(400).json({ error: error.message });
     }
-})
+});
 
 const removeProduct = asyncHandler(async (req, res) => {
     try {
@@ -64,7 +109,7 @@ const removeProduct = asyncHandler(async (req, res) => {
         console.error(error);
         res.status(500).json({error: "Server error"});
     }
-})
+});
 
 const fetchProducts = asyncHandler(async (req, res) => {
     try {
@@ -78,7 +123,7 @@ const fetchProducts = asyncHandler(async (req, res) => {
         console.error(error);
         res.status(500).json({error: "Server error"});
     }
-})
+});
 
 const fetchProductById = asyncHandler(async(req, res) => {
      try {
@@ -94,7 +139,7 @@ const fetchProductById = asyncHandler(async(req, res) => {
         console.error(error);
         res.status(404).json({error: "Product not found"});
      }
-})
+});
 
 const fetchAllProducts = asyncHandler(async(req, res) => {
     try {
@@ -107,8 +152,7 @@ const fetchAllProducts = asyncHandler(async(req, res) => {
         console.error(error);
         res.status(500).json({error: "Server error"});
     }
-})
-
+});
 
 const addProductReview = asyncHandler (async(req, res) => {
     try {
@@ -130,7 +174,7 @@ const addProductReview = asyncHandler (async(req, res) => {
                 user: req.user._id,
             }
 
-            product.reviews .push(review);
+            product.reviews.push(review);
             product.numReviews = product.reviews.length;
 
             product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
@@ -146,7 +190,7 @@ const addProductReview = asyncHandler (async(req, res) => {
         console.error(error);
         res.status(400).json(error.message);
     }
-})
+});
 
 const fetchTopProducts = asyncHandler(async (req, res) => {
     try {
@@ -156,7 +200,7 @@ const fetchTopProducts = asyncHandler(async (req, res) => {
         console.error(error);
         res.status(400).json(error.message);
     }
-})
+});
 
 const fetchNewProducts = asyncHandler(async (req, res) => {
     try {
@@ -182,16 +226,17 @@ const filterProducts = asyncHandler(async (req, res) => {
         console.error(error);
         res.status(500).json({error: "Server error"});
     }
-})
+});
 
-export {addProduct, 
-        updateProductDetails,
-        removeProduct, 
-        fetchProducts,
-        fetchProductById,
-        fetchAllProducts,
-        addProductReview,
-        fetchTopProducts,
-        fetchNewProducts,
-        filterProducts,
-    };
+export {
+    addProduct, 
+    updateProductDetails,
+    removeProduct, 
+    fetchProducts,
+    fetchProductById,
+    fetchAllProducts,
+    addProductReview,
+    fetchTopProducts,
+    fetchNewProducts,
+    filterProducts,
+};

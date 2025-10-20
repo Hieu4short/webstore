@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import ChatbotWidget from './components/ChatbotWidget';
 
 
+
 function App() {
   const { comparisonItems } = useSelector(state => state.comparison);
   

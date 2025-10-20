@@ -43,6 +43,7 @@ import PlaceOrder from './pages/Orders/PlaceOrder.jsx';
 import Order from './pages/Orders/Order.jsx';
 import UserOrder from './pages/User/UserOrder.jsx';
 import OrderList from './pages/Admin/OrderList.jsx';
+import SearchScreen from './pages/SearchScreen.jsx';
 
 import {PayPalScriptProvider} from "@paypal/react-paypal-js";
 
@@ -59,6 +60,8 @@ const router = createBrowserRouter(
       <Route path='/cart' element={<Cart />}></Route> 
       <Route path='/shop' element={<Shop />}></Route> 
       <Route path='/user-orders' element={<UserOrder />}></Route> 
+      <Route path="/search/:keyword" element={<SearchScreen />} />
+      <Route path="/search" element={<SearchScreen />} />
 
       <Route path='' element={< PrivateRoute />} >
         <Route path='/profile' element={<Profile />}/>

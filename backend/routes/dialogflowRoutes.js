@@ -1,7 +1,8 @@
 import express from 'express';
 const router = express.Router();
-import dialogflowService from '../services/dialogflowService.js'; 
+import { detectIntent, handleWebhook } from '../services/dialogflowService.js';
 
+// Route cho frontend chat widget
 router.post('/message', async (req, res) => {
     try {
         const { message, sessionId = 'default-session' } = req.body;
@@ -9,23 +10,31 @@ router.post('/message', async (req, res) => {
         if (!message || message.trim() === '') {
             return res.status(400).json({
                 success: false,
-                message: 'Tin nhắn không được để trống'
+                message: 'Message cannot be blank'
             });
         }
 
-        const dialogflowResponse = await dialogflowService.detectIntent(
-            sessionId, 
-            message.trim()
-        );
+        console.log('💬 Frontend message received:', message);
+        
+        const dialogflowResponse = await detectIntent(sessionId, message.trim());
 
-        res.json(dialogflowResponse);
+        res.json({
+            success: true,
+            response: dialogflowResponse.response || 'No response from Dialogflow',
+            intent: dialogflowResponse.intent,
+            parameters: dialogflowResponse.parameters
+        });
+        
     } catch (error) {
-        console.error('DialogFlow Route Error:', error);
+        console.error('❌ DialogFlow Route Error:', error);
         res.status(500).json({
             success: false,
-            message: 'Lỗi server khi xử lý tin nhắn'
+            message: 'Server error while processing message'
         });
     }
 });
 
-export default router; 
+// Route cho Dialogflow fulfillment webhook
+router.post('/webhook', express.json(), handleWebhook);
+
+export default router;

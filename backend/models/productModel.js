@@ -11,7 +11,7 @@ const reviewSchema = mongoose.Schema({
 
 const productSchema = mongoose.Schema({
     name: {type: String, required: true},
-    image: {type: String, required: true},
+    image: {type: String},
     brand: {type: String, required: true},
     quantity: {type: String, required: true},
     category: {type: ObjectId, ref: "Category", required: true},
@@ -22,7 +22,7 @@ const productSchema = mongoose.Schema({
     price: {type: Number, required: true, default: 0},
     countInStock: {type: Number, required: true, default: 0} 
 
-}, {timestamp: true});
+}, {timestamps: true});
 
 const Product = mongoose.model("Product", productSchema);
 export default Product;

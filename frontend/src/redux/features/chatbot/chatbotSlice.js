@@ -14,7 +14,7 @@ export const sendChatMessage = createAsyncThunk(
         try {
             console.log('📤 Sending message to backend:', message);
             
-            const response = await fetch('/api/chatbot/message', {
+            const response = await fetch('http://localhost:5050/api/chatbot/message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

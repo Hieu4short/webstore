@@ -9,7 +9,7 @@ import AdminMenu from "./AdminMenu";
 import { FaUpload, FaPlusCircle } from "react-icons/fa";
 
 const ProductList = () => {
-    const [image, setImage] = useState("");
+    const [image, setImage] = useState("null");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
@@ -26,43 +26,44 @@ const ProductList = () => {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+      
         try {
-            const productData = new FormData();
-            productData.append("image", image);
-            productData.append("name", name);
-            productData.append("description", description);
-            productData.append("price", price);
-            productData.append("category", category);
-            productData.append("quantity", quantity);
-            productData.append("brand", brand);
-            productData.append("countInStock", stock);
-            
-            const {data} = await createProduct(productData);
-
-            if (data.error) {
-                toast.error("Product create failed, please try again!");
-            } else {
-                toast.success(`${data.name} is created`);
-                navigate("/admin/allproductslist");
-            }
-
+          const productData = new FormData();
+          productData.append("image", image);
+          productData.append("name", name);
+          productData.append("description", description);
+          productData.append("price", price);
+          productData.append("category", category);
+          productData.append("quantity", quantity);
+          productData.append("brand", brand);
+          productData.append("countInStock", stock);
+          
+          console.log("Sending form data:", {
+            name, description, price, category, quantity, brand, stock, image
+          });
+      
+          const result = await createProduct(productData);
+          
+          if (result.error) {
+            console.error("API Error:", result.error);
+            toast.error(result.error.data?.error || result.error.data?.message || "Product create failed, please try again!");
+          } else {
+            toast.success(`${result.data.name} is created`);
+            navigate("/admin/allproductslist");
+          }
+      
         } catch (error) {
-            console.error(error);
-            toast.error("Product create failed, please try again!");
+          console.error("Submit error:", error);
+          toast.error("Product create failed, please try again!");
         }
-    }
+      }
+
 
     const uploadFileHandler = async (e) => {
-        const formData = new FormData();
-        formData.append('image', e.target.files[0]);
-
-        try {
-            const res = await uploadProductImage(formData).unwrap();
-            setImage(res.image);
-            setImageUrl(res.image);
-        } catch (error) {
-            toast.error(error?.data?.message || error.error);
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file); // Lưu File object
+            setImageUrl(URL.createObjectURL(file)); // Tạo URL preview
         }
     }
 

@@ -26,12 +26,15 @@ const Shop = () => {
     useEffect(() => {
         if (!checked.length || !radio.length) {
             if (!filteredProductsQuery.isLoading) {
-                const filteredProducts = filteredProductsQuery.data.filter((product) => {
-                    return (
-                        product.price.toString().includes(priceFilter) || 
-                        product.price === parseInt(priceFilter, 10)
-                    );
-                });
+                let filteredProducts = filteredProductsQuery.data;
+                
+                if (priceFilter) {
+                    const [min, max] = priceFilter.split('-').map(Number);
+                    filteredProducts = filteredProducts.filter((product) => {
+                        return product.price >= min && product.price <= max;
+                    });
+                }
+                
                 dispatch(setProducts(filteredProducts));
             }
         }
@@ -59,9 +62,6 @@ const Shop = () => {
         ),
     ];
 
-    const handlePriceChange = (e) => {
-        setPriceFilter(e.target.value);
-    };
 
     const resetFilters = () => {
         setPriceFilter("");
@@ -160,18 +160,24 @@ const Shop = () => {
                             {/* Price Filter */}
                             <div className="mb-6">
                                 <h2 className="text-lg font-semibold text-center py-2 bg-black rounded-full mb-4 text-white">
-                                    Filter by Price
+                                    Filter by Price Range
                                 </h2>
                                 <div className="p-2">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Enter Price" 
-                                        value={priceFilter} 
-                                        onChange={handlePriceChange}
-                                        className="w-full px-3 py-2 placeholder-gray-400 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 text-black"
-                                    />
+                                    <select 
+                                        value={priceFilter}
+                                        onChange={(e) => setPriceFilter(e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 text-black"
+                                    >
+                                        <option value="">All Prices</option>
+                                        <option value="0-50">Under $50</option>
+                                        <option value="50-100">$50 - $100</option>
+                                        <option value="100-200">$100 - $300</option>
+                                        <option value="200-500">$300 - $500</option>
+                                        <option value="500-1000">$500 - $1000</option>
+                                        <option value="1000-99999">Over $1000</option>
+                                    </select>
                                 </div>
-                            </div>
+                        </div>
 
                             {/* Reset Button */}
                             <div className="pt-2">

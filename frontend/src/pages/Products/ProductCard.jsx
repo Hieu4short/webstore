@@ -6,6 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HeartIcon from "./HeartIcon";
 import CompareButton from "../../components/CompareButton";
+import { getImageUrl } from "../../Utils/getImageUrl";
+
 
 const ProductCard = ({ p }) => {
     const dispatch = useDispatch();
@@ -29,7 +31,7 @@ const ProductCard = ({ p }) => {
               </span>
               <img 
                 className="cursor-pointer w-full rounded-t-lg" 
-                src={p.image} 
+                src={getImageUrl(p.image)} // SỬA: dùng getImageUrl
                 alt={p.name}
                 style={{ 
                   height: "200px", 

@@ -3,49 +3,48 @@ import Product from "../models/productModel.js";
 
 const addProduct = asyncHandler(async (req, res) => {
     try {
-        const {name, description, price, category, quantity, brand} = req.body;
+        console.log("Request file:", req.file); 
+        console.log("Request body:", req.body); 
         
+        const {name, description, price, category, quantity, brand, imageUrl} = req.body;
+        
+        // Validation
         switch (true) {
-            case !name:
-                return res.json({error: "Name is required"});
-            case !description:
-                return res.json({error: "Description is required"});
-            case !price:
-                return res.json({error: "Price is required"});
-            case !category:
-                return res.json({error: "Category is required"});
-            case !quantity:
-                return res.json({error: "Quantity is required"});
-            case !brand:
-                return res.json({error: "Brand is required"});    
+            case !name: return res.status(400).json({error: "Name is required"});
+            case !description: return res.status(400).json({error: "Description is required"});
+            case !price: return res.status(400).json({error: "Price is required"});
+            case !category: return res.status(400).json({error: "Category is required"});
+            case !quantity: return res.status(400).json({error: "Quantity is required"});
+            case !brand: return res.status(400).json({error: "Brand is required"});    
         }
 
         const productData = {
             name,
             description,
-            price,
+            price: Number(price),
             category,
-            quantity,
+            quantity: Number(quantity),
             brand,
-            image: req.file ? req.file.path : undefined
+            image: req.file ? `/uploads/${req.file.filename}` : imageUrl || null
         };
+
+        console.log("Product data to save:", productData); 
 
         const product = new Product(productData);
         await product.save();
-        res.json(product);
+        res.status(201).json(product);
     } catch (error) {
         console.error(error);
-        res.status(400).json(error.message)
+        res.status(400).json({error: error.message})
     }
 });
 
 const updateProductDetails = asyncHandler(async (req,res) => {
     try {
-        console.log("Update request fields:", req.fields);
+        console.log("Update request body:", req.body);
         console.log("Update request file:", req.file);
-        console.log("Product ID:", req.params.id);
 
-        const { name, description, price, category, quantity, brand, countInStock, image } = req.fields;
+        const { name, description, price, category, quantity, brand, countInStock } = req.body;
         
         // Validation
         const requiredFields = { name, description, price, category, quantity, brand };
@@ -71,19 +70,9 @@ const updateProductDetails = asyncHandler(async (req,res) => {
             countInStock: Number(countInStock || existingProduct.countInStock)
         };
 
-        // QUAN TRỌNG: Xử lý ảnh - 3 trường hợp
         if (req.file) {
-            // CASE 1: Có file ảnh mới được upload
-            updateData.image = req.file.path;
-            console.log("New image uploaded:", req.file.path);
-        } else if (image && image !== existingProduct.image) {
-            // CASE 2: Có đường dẫn ảnh mới từ client (đã upload trước đó)
-            updateData.image = image;
-            console.log("Image path updated:", image);
-        } else {
-            // CASE 3: Giữ nguyên ảnh cũ
-            updateData.image = existingProduct.image;
-            console.log("Keep existing image:", existingProduct.image);
+            updateData.image = `/uploads/${req.file.filename}`;
+            console.log("New image uploaded:", updateData.image);
         }
 
         const product = await Product.findByIdAndUpdate(

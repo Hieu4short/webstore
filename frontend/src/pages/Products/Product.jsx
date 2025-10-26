@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import HeartIcons from "./HeartIcon";
+import { getImageUrl } from "../../Utils/getImageUrl";
 
 const Product = ({ product }) => {
   return (
     <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xs 2xl:max-w-sm p-2 sm:p-3 relative bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors duration-300">
       <div className="relative">
         <img 
-          src={product.image} 
+          src={getImageUrl(product.image)}  
           alt={product.name} 
           className="w-full h-48 sm:h-56 md:h-64 lg:h-72 xl:h-48 2xl:h-56 object-cover rounded"
         />

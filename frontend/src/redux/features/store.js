@@ -9,8 +9,24 @@ import { getFavoritesFromLocalStorage } from "../../Utils/localStorage";
 import comparisonReducers from "./comparison/comparisonSlice";
 import chatbotReducer from './chatbot/chatbotSlice';
 
-
 const initialFavorites = getFavoritesFromLocalStorage() || [];
+
+// Tạo middleware để tự động reset chatbot khi logout
+const chatbotResetMiddleware = (store) => (next) => (action) => {
+  // Nếu action là logout, reset chatbot state trước
+  if (action.type === 'auth/logout') {
+    const currentState = store.getState();
+    
+    // Dispatch reset chatbot action trước
+    store.dispatch({
+      type: 'chatbot/resetChatbot' // Sẽ tạo action này trong bước tiếp theo
+    });
+    
+    console.log('🔄 Auto-resetting chatbot on logout');
+  }
+  
+  return next(action);
+};
 
 const store = configureStore({
     reducer: {
@@ -27,7 +43,10 @@ const store = configureStore({
         favorites: initialFavorites,
     },
 
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
+    middleware: (getDefaultMiddleware) => 
+        getDefaultMiddleware()
+            .concat(apiSlice.middleware)
+            .concat(chatbotResetMiddleware), // THÊM MIDDLEWARE VÀO ĐÂY
     devTools: true,
 });
 

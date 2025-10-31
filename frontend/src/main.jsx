@@ -32,6 +32,7 @@ import AllProducts from './pages/Admin/AllProducts.jsx';
 import ProductList  from './pages/Admin/ProductList.jsx';
 import ProductUpdate  from './pages/Admin/ProductUpdate.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
+import AdminChat from './components/Admin/AdminChat.jsx';
 
 import Favorites from './pages/Products/Favorites.jsx';
 import ProductDetails from './pages/Products/ProductDetails.jsx';
@@ -80,6 +81,7 @@ const router = createBrowserRouter(
         <Route path='productlist/:pageNumber?' element={<ProductList/> }></Route>
         <Route path='product/update/:_id' element={<ProductUpdate/> }></Route>
         <Route path='dashboard' element={<AdminDashboard/>}></Route>
+        <Route path="chat" element={<AdminChat />} ></Route>
 
       </Route>
     </Route>

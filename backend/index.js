@@ -14,6 +14,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import dialogflowRoutes from './routes/dialogflowRoutes.js';
 import dialogflowWebhookRoutes from './routes/dialogflowWebhookRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/orders", orderRoutes);
 app.use('/api/chatbot', dialogflowRoutes);
 app.use('/api/dialogflow', dialogflowWebhookRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get("/api/config/paypal", (req, res) => {
   res.send({ clientId: process.env.PAYPAL_CLIENT_ID});

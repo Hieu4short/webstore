@@ -18,11 +18,16 @@ router.post('/message', async (req, res) => {
         
         const dialogflowResponse = await detectIntent(sessionId, message.trim());
 
+        console.log('🎯 Dialogflow response for frontend:', JSON.stringify(dialogflowResponse, null, 2));
+
+        // QUAN TRỌNG: Trả về cả payload và richPayload
         res.json({
             success: true,
             response: dialogflowResponse.response || 'No response from Dialogflow',
             intent: dialogflowResponse.intent,
-            parameters: dialogflowResponse.parameters
+            parameters: dialogflowResponse.parameters,
+            payload: dialogflowResponse.payload || null,        
+            richPayload: dialogflowResponse.richPayload || null 
         });
         
     } catch (error) {

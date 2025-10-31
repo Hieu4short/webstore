@@ -222,6 +222,18 @@ const Navigation = () => {
                       </li>
                       <li>
                         <Link 
+                          to="/admin/chat" 
+                          className="block px-4 py-2 hover:bg-gray-100 text-sm" 
+                          onClick={() => {
+                            setShowSidebar(false);
+                            setDropdownOpen(false);
+                          }}
+                        >
+                          Chat 
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
                           to="/admin/categorylist" 
                           className="block px-4 py-2 hover:bg-gray-100 text-sm" 
                           onClick={() => {

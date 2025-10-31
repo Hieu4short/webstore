@@ -7,7 +7,7 @@ const initialState = {
     isChatOpen: false
 };
 
-// Async thunk để gửi message - DÙNG FETCH TRỰC TIẾP
+// Async thunk để gửi message
 export const sendChatMessage = createAsyncThunk(
     'chatbot/sendMessage',
     async ({ message, sessionId = 'default-session' }, { rejectWithValue }) => {
@@ -29,7 +29,7 @@ export const sendChatMessage = createAsyncThunk(
             }
             
             const data = await response.json();
-            console.log('✅ Backend response:', data);
+            console.log('✅ Backend response with payload:', data);
             return data;
             
         } catch (error) {
@@ -52,6 +52,12 @@ const chatbotSlice = createSlice({
         clearChat: (state) => {
             state.messages = [];
             state.error = null;
+        },
+        resetChatbot: (state) => {
+            state.messages = [];
+            state.error = null;
+            state.isChatOpen = false;
+            state.isLoading = false;
         }
     },
     extraReducers: (builder) => {
@@ -62,17 +68,24 @@ const chatbotSlice = createSlice({
             })
             .addCase(sendChatMessage.fulfilled, (state, action) => {
                 state.isLoading = false;
+                
                 if (action.payload.success) {
+                    // QUAN TRỌNG: Ưu tiên richPayload, sau đó đến payload
+                    const payload = action.payload.richPayload || action.payload.payload;
+                    
+                    console.log('💾 Saving message with payload:', payload);
+                    
                     state.messages.push({
                         type: 'bot',
                         text: action.payload.response,
                         timestamp: new Date().toISOString(),
-                        intent: action.payload.intent
+                        intent: action.payload.intent,
+                        payload: payload // Lưu payload vào message
                     });
                 } else {
                     state.messages.push({
                         type: 'bot',
-                        text: action.payload.response || 'Sorry, there was an error.',
+                        text: action.payload.response || action.payload.message || 'Sorry, there was an error.',
                         timestamp: new Date().toISOString(),
                         isError: true
                     });
@@ -91,5 +104,5 @@ const chatbotSlice = createSlice({
     }
 });
 
-export const { addMessage, toggleChat, clearChat } = chatbotSlice.actions;
+export const { addMessage, toggleChat, clearChat, resetChatbot } = chatbotSlice.actions;
 export default chatbotSlice.reducer;

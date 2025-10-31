@@ -45,26 +45,72 @@ class DialogFlowService {
                 this.projectId, 
                 sessionId
             );
-
+    
             const request = {
                 session: sessionPath,
                 queryInput: {
                     text: { text: message, languageCode: languageCode },
                 },
             };
-
+    
             console.log(' Sending to DialogFlow...');
             const responses = await this.sessionClient.detectIntent(request);
             const result = responses[0].queryResult;
             
-            console.log('✅ Response:', result.fulfillmentText);
+            console.log('✅ Dialogflow raw response:', JSON.stringify(result, null, 2));
             
+            // XỬ LÝ RICH PAYLOAD - SỬA QUAN TRỌNG
+            let richPayload = null;
+            let payload = null;
+            
+            // 1. Check for webhookPayload (QUAN TRỌNG - Đây là nơi payload thực sự nằm)
+            if (result.webhookPayload && result.webhookPayload.fields) {
+                console.log('🎁 Found webhookPayload:', result.webhookPayload);
+                
+                // Convert Dialogflow Struct to plain object
+                richPayload = this.convertStructToObject(result.webhookPayload);
+                console.log('🔄 Converted webhookPayload:', richPayload);
+            }
+            
+            // 2. Check for custom payload trong fulfillmentMessages
+            if (result.fulfillmentMessages) {
+                for (const message of result.fulfillmentMessages) {
+                    if (message.payload) {
+                        console.log('📦 Found fulfillmentMessages payload:', message.payload);
+                        payload = message.payload;
+                        break;
+                    }
+                }
+            }
+            
+            // 3. Xử lý fulfillmentText như JSON (fallback)
+            if (result.fulfillmentText) {
+                try {
+                    const parsed = JSON.parse(result.fulfillmentText);
+                    console.log('🔍 Parsed fulfillmentText as JSON:', parsed);
+                    
+                    if (parsed.payload && !richPayload) {
+                        richPayload = parsed.payload;
+                        console.log('🎁 Found JSON fulfillmentText payload:', richPayload);
+                    }
+                    
+                    if (parsed.fulfillmentText) {
+                        result.fulfillmentText = parsed.fulfillmentText;
+                    }
+                } catch (e) {
+                    // Không phải JSON, giữ nguyên text
+                    console.log('📝 fulfillmentText is plain text');
+                }
+            }
+    
             return {
                 success: true,
                 intent: result.intent.displayName,
                 confidence: result.intentDetectionConfidence,
                 response: result.fulfillmentText,
                 parameters: result.parameters.fields,
+                payload: payload,
+                richPayload: richPayload, // Ưu tiên webhookPayload
                 hasOrderInfo: this.checkForOrderIntent(result)
             };
             
@@ -77,6 +123,31 @@ class DialogFlowService {
             };
         }
     }
+    
+    // THÊM HÀM MỚI: Convert Dialogflow Struct to plain object
+    convertStructToObject(struct) {
+        if (!struct || !struct.fields) return null;
+        
+        const result = {};
+        
+        for (const [key, value] of Object.entries(struct.fields)) {
+            if (value.kind === 'stringValue') {
+                result[key] = value.stringValue;
+            } else if (value.kind === 'numberValue') {
+                result[key] = value.numberValue;
+            } else if (value.kind === 'boolValue') {
+                result[key] = value.boolValue;
+            } else if (value.kind === 'structValue') {
+                result[key] = this.convertStructToObject(value.structValue);
+            } else if (value.kind === 'listValue' && value.listValue.values) {
+                result[key] = value.listValue.values.map(item => this.convertStructToObject({ fields: { item } }).item);
+            } else {
+                result[key] = null;
+            }
+        }
+        
+        return result;
+    }
 
     checkForOrderIntent(result) {
         const orderIntents = ['track.order', 'check.order.status', 'order.inquiry'];
@@ -86,73 +157,138 @@ class DialogFlowService {
 
 const dialogflowService = new DialogFlowService();
 
-// executed function webhook from Dialogflow
-export const handleWebhook = async (req, res) => {
-  try {
-    const { queryResult } = req.body;
-    const intent = queryResult.intent.displayName;
-    const parameters = queryResult.parameters;
-
-    console.log(' Webhook received:', { 
-        intent, 
-        parameters,
-        rawFields: parameters.fields,
-     });
-
-    let fulfillmentText = '';
-
-    switch (intent) {
-      case 'price.inquiry':
-        fulfillmentText = await handlePriceInquiry(parameters);
-        break;
-        case 'stock.inquiry': 
-        fulfillmentText = await handleStockInquiry(parameters);
-        break;
-      case 'product.category':
-        fulfillmentText = await handleProductCategory(parameters);
-        break;
-      case 'product.inquiry':
-        fulfillmentText = await handleProductInquiry(parameters);
-        break;
-      case 'shipping.info':
-        fulfillmentText = await handleShippingInfo(parameters);
-        break;
-        case 'discount.inquiry':  
-        fulfillmentText = await handleDiscountInquiry(parameters);
-        break;
-      case 'help':
-        fulfillmentText = await handleHelp(parameters);
-        break;
-        case 'discount.inquiry':
-            fulfillmentText = await handleDiscountInquiry(parameters);
-            break;
-          case 'order.tracking':
-            fulfillmentText = await handleOrderTracking(parameters);
-            break;
-          case 'return.policy':
-            fulfillmentText = await handleReturnPolicy(parameters);
-            break;
-          case 'payment.method':
-            fulfillmentText = await handlePaymentMethods(parameters);
-            break;
-      default:
-        fulfillmentText = queryResult.fulfillmentText || "I'm not sure how to help with that. Can you try asking differently?";
+const handleFallback = async (parameters, userMessage) => {
+    console.log('🔄 Fallback triggered for message:', userMessage);
+    
+    const lowerMessage = userMessage.toLowerCase();
+    
+    let suggestions = '';
+    
+    if (lowerMessage.includes('return') || lowerMessage.includes('refund') || lowerMessage.includes('exchange')) {
+      suggestions = '\n\n💡 **You might be looking for:**\n• Return policy information\n• How to process a return\n• Refund status';
+    } else if (lowerMessage.includes('track') || lowerMessage.includes('delivery') || lowerMessage.includes('shipping')) {
+      suggestions = '\n\n💡 **You might be looking for:**\n• Order tracking\n• Shipping information\n• Delivery status';
+    } else if (lowerMessage.includes('pay') || lowerMessage.includes('payment') || lowerMessage.includes('card')) {
+      suggestions = '\n\n💡 **You might be looking for:**\n• Payment methods\n• Payment issues\n• Billing information';
+    } else if (lowerMessage.includes('discount') || lowerMessage.includes('deal') || lowerMessage.includes('promo')) {
+      suggestions = '\n\n💡 **You might be looking for:**\n• Current promotions\n• Discount codes\n• Special offers';
+    } else {
+      suggestions = '\n\n💡 **Try asking about:**\n• Product prices and stock\n• Order tracking\n• Shipping information\n• Return policy\n• Payment methods';
     }
+  
+    return `I'm not quite sure I understand. Could you please rephrase your question?${suggestions}\n\n` +
+           `🤝 **Need human assistance? Click "💬 Chat with Admin" below!**\n` +
+           `• 📞 Phone: 1-800-HELP-NOW\n` +
+           `• 📧 Email: support@webstore.com`;
+  };
+  
+  // Hàm xử lý yêu cầu liên hệ support
+  const handleContactRequest = async (parameters) => {
+    return `I'll connect you with our admin team! 🚀\n\n` +
+           `**Please click the "💬 Chat with Admin" button** that just appeared to get real-time help.\n\n` +
+           `Our admin team can assist with:\n` +
+           `• Complex order issues\n` +
+           `• Payment problems\n` +
+           `• Technical support\n` +
+           `• Special requests\n\n` +
+           `⏰ Response time: Usually within 5-15 minutes during business hours`;
+  };
 
-    res.json({
-      fulfillmentText,
-      source: 'webstore-backend'
-    });
+  export const handleWebhook = async (req, res) => {
+    try {
+      const { queryResult } = req.body;
+      const intent = queryResult.intent.displayName;
+      const parameters = queryResult.parameters;
+  
+      console.log(' Webhook received:', { 
+          intent, 
+          parameters: JSON.stringify(parameters, null, 2)
+       });
+  
+      let response = {
+        fulfillmentText: '', // Fallback text
+        payload: null, // Rich payload data
+        source: 'webstore-backend'
+      };
+  
+      switch (intent) {
+        case 'price.inquiry':
+          const priceResult = await handlePriceInquiry(parameters);
+          response.fulfillmentText = typeof priceResult === 'string' ? priceResult : priceResult.fulfillmentText;
+          response.payload = priceResult.payload || null;
+          break;
+  
+          case 'stock.inquiry': 
+          const stockResult = await handleStockInquiry(parameters);
+          response.fulfillmentText = stockResult;
+          break;
+  
+          case 'product.category':
+            const categoryResult = await handleProductCategory(parameters);
+            response.fulfillmentText = typeof categoryResult === 'string' ? categoryResult : categoryResult.fulfillmentText;
+            response.payload = categoryResult.payload || null;
+            break;
+  
+            case 'product.inquiry':
+            const productResult = await handleProductInquiry(parameters);
+            response.fulfillmentText = typeof productResult === 'string' ? productResult : productResult.fulfillmentText;
+            response.payload = productResult.payload || null;
+            break;
+  
+        case 'shipping.info':
+          response.fulfillmentText = await handleShippingInfo(parameters);
+          break;
+  
+          case 'discount.inquiry':  
+          const discountResult = await handleDiscountInquiry(parameters);
+          response.fulfillmentText = typeof discountResult === 'string' ? discountResult : discountResult.fulfillmentText;
+          response.payload = discountResult.payload || null;
+          break;
+  
+        case 'help':
+          response.fulfillmentText = await handleHelp(parameters);
+          break;
+  
+        case 'order.tracking':
+          response.fulfillmentText = await handleOrderTracking(parameters);
+          break;
+  
+        case 'return.policy':
+          response.fulfillmentText = await handleReturnPolicy(parameters);
+          break;
+  
+        case 'payment.method':
+          response.fulfillmentText = await handlePaymentMethods(parameters);
+          break;
+  
+        case 'contact.support':
+          response.fulfillmentText = await handleContactRequest(parameters);
+          break;
+  
+        case 'Default Welcome Intent':
+          response.fulfillmentText = queryResult.fulfillmentText;
+          break;
+  
+        case 'Default Fallback Intent':
+          response.fulfillmentText = await handleFallback(parameters, queryResult.queryText);
+          break;
+  
+        default:
+          response.fulfillmentText = queryResult.fulfillmentText || await handleFallback(parameters, queryResult.queryText);
+      }
+      console.log('🎯 Webhook response:', JSON.stringify(response, null, 2));
+      res.json(response);
+  
+    } catch (error) {
+      console.error('❌ Webhook error:', error);
+      res.json({
+        fulfillmentText: 'Sorry, I encountered an error. Please try again later.',
+        source: 'webstore-backend'
+      });
+    }
+  };
 
-  } catch (error) {
-    console.error('❌ Webhook error:', error);
-    res.json({
-      fulfillmentText: 'Sorry, I encountered an error. Please try again later.'
-    });
-  }
-};
-
-const handlePriceInquiry = async (parameters) => {
+  const handlePriceInquiry = async (parameters) => {
     console.log('🔍 Raw parameters received:', parameters);
     
     const productName = parameters.fields?.product_name?.stringValue || 
@@ -160,43 +296,65 @@ const handlePriceInquiry = async (parameters) => {
                        parameters.fields?.product_name;
     
     console.log('🎯 Extracted product name:', productName);
-  
+
     if (!productName) {
       return "Which product would you like to know the price of?";
     }
-  
+
     console.log('🔍 Searching database for:', productName);
-  
+
     const products = await Product.find({
       $or: [
         { name: { $regex: productName, $options: 'i' } },
         { brand: { $regex: productName, $options: 'i' } }
       ]
     }).limit(5);
-  
+
     console.log('📦 Products found:', products.length);
-  
+
     if (products.length === 0) {
       return `I couldn't find "${productName}" in our store. Try searching for "Macbook Air M1", "iPhone", or "Samsung Galaxy".`;
     }
-  
+
     if (products.length === 1) {
       const product = products[0];
-      const stockStatus = product.countInStock > 0 
-        ? `✅ ${product.countInStock} units in stock` 
-        : '❌ Currently out of stock';
-      return ` Yes, we have ${product.name}. The price of its product is $${product.price}. There are ${stockStatus} quantities in our store. And here is the ratings of other users: ${product.rating}`;
+      
+      // TRẢ VỀ RICH PAYLOAD
+      return {
+        fulfillmentText: `Yes, we have ${product.name}. The price is $${product.price}. ${product.countInStock > 0 ? '✅ In stock' : '❌ Out of stock'}. Rating: ${product.rating}/5`,
+        payload: {
+          type: 'rich_card',
+          product: {
+            _id: product._id.toString(),
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            brand: product.brand,
+            description: product.description?.substring(0, 100) + '...',
+            countInStock: product.countInStock,
+            rating: product.rating
+          }
+        }
+      };
     }
-  
-    let response = `🔍 Found ${products.length} matching products:\n\n`;
-    products.forEach((product, index) => {
-      const stockIcon = product.countInStock > 0 ? '✅' : '❌';
-      response += `${index + 1}. **${product.name}** - $${product.price} ${stockIcon}\n`;
-    });
-    response += "\nWhich specific model are you interested in?";
-    
-    return response;
-  };
+
+    // Multiple products - trả về carousel
+    return {
+      fulfillmentText: `Found ${products.length} matching products. Which specific model are you interested in?`,
+      payload: {
+        type: 'rich_carousel',
+        products: products.map(product => ({
+          _id: product._id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          brand: product.brand,
+          countInStock: product.countInStock,
+          rating: product.rating
+        }))
+      }
+    };
+};
 
 const handleProductCategory = async (parameters) => {
   const categoryName = parameters.fields?.product_category?.stringValue || parameters.product_category;
@@ -224,23 +382,38 @@ const handleProductCategory = async (parameters) => {
   return `Here are our ${category.name}:\n${productList}\n\nWould you like more details about any of these?`;
 };
 
+// Trong handlePriceInquiry hoặc handleProductInquiry
 const handleProductInquiry = async (parameters) => {
-  const productName = parameters.fields?.product_name?.stringValue || parameters.product_name;
-  
-  const product = await Product.findOne({
-    name: { $regex: productName, $options: 'i' }
-  }).populate('category');
+    const productName = parameters.fields?.product_name?.stringValue || parameters.product_name;
+    
+    console.log('🔍 Product inquiry for:', productName);
+    
+    const product = await Product.findOne({
+      name: { $regex: productName, $options: 'i' }
+    }).populate('category');
 
-  if (!product) {
-    return `Sorry, I couldn't find information about "${productName}".`;
-  }
+    if (!product) {
+      return `Sorry, I couldn't find information about "${productName}".`;
+    }
 
-  return `Here's information about ${product.name}:
-• Price: $${product.price}
-• Brand: ${product.brand}
-• Category: ${product.category?.name || 'N/A'}
-• Description: ${product.description.substring(0, 150)}...
-• Status: ${product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}`;
+    // TRẢ VỀ RICH PAYLOAD
+    return {
+      fulfillmentText: `Here's information about ${product.name}: Price: $${product.price}, Brand: ${product.brand}, Rating: ${product.rating}/5`,
+      payload: {
+        type: 'rich_card',
+        product: {
+          _id: product._id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          brand: product.brand,
+          description: product.description,
+          countInStock: product.countInStock,
+          rating: product.rating,
+          category: product.category?.name
+        }
+      }
+    };
 };
 
 
@@ -340,133 +513,63 @@ const handleStockInquiry = async (parameters) => {
     return response;
   };
 
-const handleDiscountInquiry = async (parameters) => {
-    console.log('💰 Discount inquiry parameters:', parameters);
-    
+  const handleDiscountInquiry = async (parameters) => {
     const productName = parameters.fields?.product_name?.stringValue || parameters.product_name;
     const categoryName = parameters.fields?.product_category?.stringValue || parameters.product_category;
     const brandName = parameters.fields?.brand?.stringValue || parameters.brand;
-    const priceRange = parameters.fields?.price_range?.stringValue || parameters.price_range;
-    const ratingRange = parameters.fields?.rating_range?.stringValue || parameters.rating_range;
-  
-    console.log('🎯 Extracted parameters:', { 
-      productName, 
-      categoryName, 
-      brandName, 
-      priceRange, 
-      ratingRange 
-    });
-  
+
+    console.log('💰 Discount inquiry for:', { productName, categoryName, brandName });
+
     try {
+      let discountProducts = [];
       let query = {};
-      let searchDescription = "current promotions";
-      
+
       if (productName) {
         query.name = { $regex: productName, $options: 'i' };
-        searchDescription = `deals on ${productName}`;
-      }
-      
-      if (brandName && !productName) {
+      } else if (brandName) {
         query.brand = { $regex: brandName, $options: 'i' };
-        searchDescription = `deals on ${brandName} products`;
-      }
-      
-      if (categoryName) {
+      } else if (categoryName) {
         const category = await Category.findOne({
           name: { $regex: categoryName, $options: 'i' }
         });
         if (category) {
           query.category = category._id;
-          searchDescription = `deals on ${categoryName}`;
         }
       }
-  
-      if (priceRange) {
-        const priceMatch = priceRange.match(/\$?(\d+)/);
-        if (priceMatch) {
-          const maxPrice = parseInt(priceMatch[1]);
-          query.price = { $lte: maxPrice };
-          searchDescription += ` under $${maxPrice}`;
-        }
-      }
-  
-      if (ratingRange) {
-        const ratingMatch = ratingRange.match(/(\d+(?:\.\d+)?)/);
-        if (ratingMatch) {
-          const minRating = parseFloat(ratingMatch[1]);
-          query.rating = { $gte: minRating };
-          searchDescription += ` with ${minRating}+ stars`;
-        }
-      }
-  
-      if (Object.keys(query).length === 0) {
-        query.rating = { $gte: 4.0 };
-        searchDescription = "best deals";
-      }
-  
-      console.log('🔍 Final query:', query);
-      console.log('📝 Search description:', searchDescription);
-  
-      const discountProducts = await Product.find(query)
-        .limit(10)
-        .select('name price brand countInStock rating description images')
-        .populate('category', 'name')
+
+      discountProducts = await Product.find(query)
+        .limit(6)
+        .select('name price brand countInStock rating description image')
         .sort({ rating: -1, price: 1 });
-  
-      console.log('📦 Products found:', discountProducts.length);
-  
+
       if (discountProducts.length === 0) {
-        let noResultsMessage = `I couldn't find any ${searchDescription} at the moment.`;
-        
-        if (productName || brandName || categoryName) {
-          noResultsMessage += "\n\nTry searching for:";
-          if (!productName && !brandName) {
-            noResultsMessage += "\n• Specific brands like Apple, Samsung, Huawei";
-          }
-          if (!categoryName) {
-            noResultsMessage += "\n• Categories like laptops, phones, watches";
-          }
-          noResultsMessage += "\n• Or browse our general promotions";
+        return "Currently, we don't have any special promotions for the items you're looking for.";
+      }
+
+      // TRẢ VỀ RICH PAYLOAD
+      return {
+        fulfillmentText: `We have ${discountProducts.length} great deals for you! Check out these discounted products.`,
+        payload: {
+          type: 'rich_carousel',
+          products: discountProducts.map(product => ({
+            _id: product._id.toString(),
+            name: product.name,
+            price: product.price,
+            originalPrice: Math.round(product.price * 1.15), // Simulate discount
+            image: product.image,
+            brand: product.brand,
+            countInStock: product.countInStock,
+            rating: product.rating,
+            isDiscounted: true
+          }))
         }
-        
-        return noResultsMessage;
-      }
-  
-      if (discountProducts.length === 1) {
-        const product = discountProducts[0];
-        const originalPrice = Math.round(product.price * 1.2); // pretend discounting 20%
-        const saveAmount = originalPrice - product.price;
-        const savePercent = Math.round((saveAmount / originalPrice) * 100);
-        
-        return `🎉 Great deal found!\n\n**${product.name}**\n• Brand: ${product.brand}\n• Original: $${originalPrice} → **Now: $${product.price}**\n• You save: $${saveAmount} (${savePercent}% off!)\n• Rating: ${product.rating}/5 ⭐\n• Stock: ${product.countInStock > 0 ? `${product.countInStock} available ✅` : 'Out of stock ❌'}\n\nPerfect time to buy! Would you like more details?`;
-      }
-  
-      let response = `🎯 Found ${discountProducts.length} ${searchDescription}:\n\n`;
-      
-      discountProducts.forEach((product, index) => {
-        const originalPrice = Math.round(product.price * 1.15); // pretend discounting 15%
-        const saveAmount = originalPrice - product.price;
-        const stockIcon = product.countInStock > 0 ? '✅' : '❌';
-        
-        response += `${index + 1}. **${product.name}**\n`;
-        response += `   Price: $${product.price} (Save $${saveAmount})\n`;
-        response += `   Brand: ${product.brand} | Rating: ${product.rating}/5 ⭐\n`;
-        response += `   Stock: ${stockIcon}\n\n`;
-      });
-  
-      if (discountProducts.length >= 5) {
-        response += "💡 **Tip**: Use filters like \"under $500\" or \"4+ stars\" to narrow down results!\n\n";
-      }
-  
-      response += "Which product interests you most? I can provide detailed information!";
-      
-      return response;
-  
+      };
+
     } catch (error) {
       console.error('❌ Discount inquiry error:', error);
-      return "I'm having trouble accessing our promotion database right now. 😔\n\nPlease try again in a moment or visit our website for current deals. You can also ask about specific products like \"iPhone deals\" or \"laptop discounts\".";
+      return "I'm having trouble accessing promotion information right now.";
     }
-  };
+};
 
 const handleOrderTracking = async (parameters) => {
     const orderNumber = parameters.fields?.order_number?.stringValue || parameters.order_number;
@@ -568,6 +671,7 @@ const handleReturnPolicy = async (parameters) => {
       }
     }
   
+    // Default response khi không có specific method
     return `We accept:\n\n• **Credit/Debit Cards** (Visa, MasterCard, Amex)\n• **PayPal** \n• **Bank Transfer**\n• **Cash on Delivery**\n• **Digital Wallets** (Apple Pay, Google Pay)\n\nAll payments are secure. Which method would you like details about?`;
   };
 
